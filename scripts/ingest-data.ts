@@ -1,12 +1,17 @@
 import fs from 'fs';
 import path from 'path';
-import { openai } from '@ai-sdk/openai';
+import { createOpenAI } from '@ai-sdk/openai';
 import { embedMany } from 'ai';
 import { db } from '../src/db';
 import { documents } from '../src/db/schema';
 import { config } from 'dotenv';
 
 config({ path: '.env.local' });
+
+const openai = createOpenAI({
+    baseURL: 'https://gateway.ai.vercel.dev/v1',
+    apiKey: process.env.AI_GATEWAY_API_KEY,
+});
 
 const DATA_FILE = path.join(process.cwd(), 'data', 'wikipedia-data.json');
 
@@ -36,15 +41,15 @@ function chunkText(text: string, maxChunkSize = 1000, overlap = 200): string[] {
       chunks.push(chunk);
     }
 
-    startIndex = endIndex - overlap;
+      startIndex = Math.max(startIndex + 1, endIndex - overlap);
   }
 
   return chunks;
 }
 
 async function main() {
-  if (!process.env.OPENAI_API_KEY || !process.env.DATABASE_URL) {
-    console.error('Missing OPENAI_API_KEY or DATABASE_URL in .env.local');
+    if (!process.env.AI_GATEWAY_API_KEY || !process.env.DATABASE_URL) {
+        console.error('Missing AI_GATEWAY_API_KEY or DATABASE_URL in .env.local');
     process.exit(1);
   }
 
