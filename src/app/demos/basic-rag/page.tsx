@@ -18,6 +18,12 @@ export default function BasicRagPage() {
     scrollToBottom();
   }, [messages]);
 
+    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        console.log('Submitting form...', input);
+        handleSubmit(e);
+    };
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-10">
@@ -85,9 +91,9 @@ export default function BasicRagPage() {
       </main>
 
       <footer className="bg-white border-t border-gray-200 p-4">
-        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto relative">
+              <form onSubmit={onSubmit} className="max-w-4xl mx-auto relative">
           <input
-            className="w-full p-4 pr-24 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-sm"
+                      className="w-full p-4 pr-24 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-sm"
             value={input}
             placeholder="Type your question..."
             onChange={handleInputChange}
@@ -95,7 +101,7 @@ export default function BasicRagPage() {
           />
           <button
             type="submit"
-            disabled={isLoading || !input?.trim()}
+                      disabled={isLoading || !input}
             className="absolute right-2 top-2 bottom-2 bg-blue-600 text-white px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
           >
             Send
