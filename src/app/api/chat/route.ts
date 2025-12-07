@@ -1,5 +1,5 @@
 import { createOpenAI } from '@ai-sdk/openai';
-import { streamText, embed } from 'ai';
+import { streamText, embed, convertToModelMessages, UIMessage } from 'ai';
 import { db } from '../../../db';
 import { documents } from '../../../db/schema';
 import { cosineDistance, desc, gt, sql } from 'drizzle-orm';
@@ -12,37 +12,43 @@ const openai = createOpenAI({
 });
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
-    const lastMessage = messages[messages.length - 1];
+  const { messages }: { messages: UIMessage[] } = await req.json();
+  const lastMessage = messages[messages.length - 1];
 
-    // 1. Generate embedding for the user's question
-    const { embedding } = await embed({
-        model: openai.embedding('text-embedding-3-small'),
-        value: lastMessage.content,
-    });
+  // Extract text from the last message parts
+  const lastMessageText = lastMessage.parts
+    .filter(part => part.type === 'text')
+    .map(part => part.text)
+    .join(' ');
 
-    // 2. Find relevant documents
-    const similarity = sql<number>`1 - (${cosineDistance(documents.embedding, embedding)})`;
-
-    const similarDocs = await db
-        .select({
-            content: documents.content,
-            similarity,
-        })
-        .from(documents)
-        .where(gt(similarity, 0.5)) // Threshold can be adjusted
-        .orderBy(desc(similarity))
-        .limit(5);
-
-    // 3. Construct context
-    const context = similarDocs.map((doc) => doc.content).join('\n\n');
-
-    // 4. Stream response
-    const result = streamText({
-        model: openai('gpt-4o'),
-        messages,
-        system: `You are a helpful assistant. Use the following context to answer the user's question. If the answer is not in the context, say you don't know.\n\nContext:\n${context}`,
+  // 1. Generate embedding for the user's question
+  const { embedding } = await embed({
+    model: openai.embedding('text-embedding-3-small'),
+    value: lastMessageText,
   });
 
-    return result.toTextStreamResponse();
+  // 2. Find relevant documents
+  const similarity = sql<number>`1 - (${cosineDistance(documents.embedding, embedding)})`;
+
+  const similarDocs = await db
+    .select({
+      content: documents.content,
+      similarity,
+    })
+    .from(documents)
+    .where(gt(similarity, 0.5))
+    .orderBy(desc(similarity))
+    .limit(5);
+
+  // 3. Construct context
+  const context = similarDocs.map((doc) => doc.content).join('\n\n');
+
+  // 4. Stream response using AI SDK v5 pattern
+  const result = streamText({
+    model: openai('gpt-4o'),
+    messages: convertToModelMessages(messages),
+    system: `You are a helpful assistant. Use the following context to answer the user's question. If the answer is not in the context, say you don't know.\n\nContext:\n${context}`,
+  });
+
+  return result.toUIMessageStreamResponse();
 }
