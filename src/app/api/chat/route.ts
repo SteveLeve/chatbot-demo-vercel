@@ -7,8 +7,8 @@ import { cosineDistance, desc, gt, sql } from 'drizzle-orm';
 export const maxDuration = 30;
 
 const openai = createOpenAI({
-    apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
-    baseURL: process.env.AI_GATEWAY_API_KEY ? 'https://gateway.ai.vercel.dev/v1' : undefined,
+    apiKey: process.env.OPENAI_API_KEY || process.env.AI_GATEWAY_API_KEY,
+    baseURL: process.env.OPENAI_API_KEY ? undefined : (process.env.AI_GATEWAY_API_KEY ? 'https://gateway.ai.vercel.dev/v1' : undefined),
 });
 
 export async function POST(req: Request) {
