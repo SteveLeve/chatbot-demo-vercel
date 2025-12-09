@@ -1,11 +1,12 @@
+import { config } from 'dotenv';
+
+config({ path: '.env.local' });
+
 import fs from 'fs';
 import path from 'path';
 import { embedMany } from 'ai';
 import { db } from '../src/db';
 import { documents } from '../src/db/schema';
-import { config } from 'dotenv';
-
-config({ path: '.env.local' });
 
 const DATA_DIR = path.join(process.cwd(), 'data', 'wikipedia');
 

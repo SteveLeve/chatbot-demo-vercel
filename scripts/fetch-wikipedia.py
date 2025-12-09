@@ -112,8 +112,7 @@ def fetch_wikipedia_dataset(
             'wikimedia/wikipedia',
             dataset_name,
             split=split,
-            streaming=True,
-            trust_remote_code=True
+            streaming=True
         )
     except Exception as e:
         print(f"Error loading dataset: {e}")
@@ -287,8 +286,8 @@ Examples:
 
         print(f"\nMetadata saved to: {metadata_file}")
         print("\nNext steps:")
-        print("1. Start your Worker: npm run dev")
-        print("2. Ingest the articles: npm run ingest ./data/wikipedia")
+        print("1. Ingest the articles: npm run ingest-data")
+        print("2. Start your development server: npm run dev")
 
     except KeyboardInterrupt:
         print("\n\nFetch interrupted by user.")
@@ -299,4 +298,9 @@ Examples:
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    finally:
+        # Exit cleanly to avoid PyGILState_Release errors during Python shutdown
+        # The datasets library can cause threading issues during cleanup when using streaming mode
+        os._exit(0)
