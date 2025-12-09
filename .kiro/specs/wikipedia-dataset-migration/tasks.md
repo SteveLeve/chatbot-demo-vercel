@@ -47,12 +47,12 @@
   - **Property 7: Directory traversal completeness**
   - **Validates: Requirements 5.5**
 
-- [ ] 4. Add npm scripts
+- [x] 4. Add npm scripts
   - Add "fetch-data" script to package.json that runs Python fetch script with default parameters
   - Add "ingest-data" script to package.json that runs TypeScript ingest script
   - _Requirements: 4.4, 4.5_
 
-- [ ] 5. Update documentation
+- [x] 5. Update documentation
   - Add Python virtual environment setup section to README with platform-specific commands
   - Document fetch-wikipedia.py usage with examples for size-mb, articles, and lang options
   - Document ingest-data.ts usage

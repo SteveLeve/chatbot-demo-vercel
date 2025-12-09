@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest --run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "fetch-data": "python3 scripts/fetch-wikipedia.py --size-mb 10",
+    "ingest-data": "tsx scripts/ingest-data.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.77",
