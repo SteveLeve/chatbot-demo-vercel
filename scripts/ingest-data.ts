@@ -7,7 +7,17 @@ import { config } from 'dotenv';
 
 config({ path: '.env.local' });
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'wikipedia-data.json');
+const DATA_DIR = path.join(process.cwd(), 'data', 'wikipedia');
+
+interface Article {
+  title: string;
+  content: string;
+  metadata: {
+    categories: string[];
+    url: string;
+    id: string;
+  };
+}
 
 // Simple recursive chunking
 function chunkText(text: string, maxChunkSize = 1000, overlap = 200): string[] {

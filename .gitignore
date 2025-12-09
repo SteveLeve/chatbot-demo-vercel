@@ -44,5 +44,8 @@ next-env.d.ts
 data/
 data/wikipedia-data.json
 
+# Python virtual environment
+.venv/
+
 #kiro
 #.kiro
