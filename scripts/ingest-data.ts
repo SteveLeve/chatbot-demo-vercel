@@ -19,6 +19,54 @@ interface Article {
   };
 }
 
+// Recursively read all JSON files from a directory
+async function readArticlesFromDirectory(dir: string): Promise<Article[]> {
+  const articles: Article[] = [];
+
+  if (!fs.existsSync(dir)) {
+    console.warn(`Directory ${dir} does not exist`);
+    return articles;
+  }
+
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      // Recursively read subdirectories
+      const subArticles = await readArticlesFromDirectory(fullPath);
+      articles.push(...subArticles);
+    } else if (entry.isFile() && entry.name.endsWith('.json')) {
+      // Skip metadata file
+      if (entry.name === '_fetch_metadata.json') {
+        continue;
+      }
+
+      try {
+        const fileContent = fs.readFileSync(fullPath, 'utf-8');
+        const article = JSON.parse(fileContent);
+
+        // Validate article format
+        if (
+          typeof article.title === 'string' &&
+          typeof article.content === 'string' &&
+          article.metadata &&
+          typeof article.metadata === 'object'
+        ) {
+          articles.push(article as Article);
+        } else {
+          console.warn(`Invalid article format in ${fullPath}, skipping`);
+        }
+      } catch (error) {
+        console.error(`Error reading ${fullPath}:`, error);
+      }
+    }
+  }
+
+  return articles;
+}
+
 // Simple recursive chunking
 function chunkText(text: string, maxChunkSize = 1000, overlap = 200): string[] {
   if (text.length <= maxChunkSize) return [text];
@@ -57,8 +105,8 @@ async function main() {
     process.exit(1);
   }
 
-  console.log('Reading data...');
-  const articles = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+  console.log('Reading articles from directory...');
+  const articles = await readArticlesFromDirectory(DATA_DIR);
   console.log(`Found ${articles.length} articles.`);
 
   const allChunks: { content: string; metadata: any }[] = [];
@@ -71,8 +119,8 @@ async function main() {
         content: chunk,
         metadata: {
           title: article.title,
-          url: article.url,
-          articleId: article.id,
+          url: article.metadata.url,
+          articleId: article.metadata.id,
         },
       });
     }

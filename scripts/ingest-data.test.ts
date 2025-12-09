@@ -53,9 +53,9 @@ describe('Ingestion Script - Requirements 1.3, 4.2', () => {
     expect(scriptContent).toContain('DATABASE_URL');
     
     // Verify the check happens in the main function (before processing)
-    // The env check should appear before "Reading data..." log
+    // The env check should appear before "Reading articles from directory..." log
     const envCheckIndex = scriptContent.indexOf('process.env.AI_GATEWAY_API_KEY');
-    const readingDataIndex = scriptContent.indexOf('Reading data');
+    const readingDataIndex = scriptContent.indexOf('Reading articles from directory');
     
     expect(envCheckIndex).toBeGreaterThan(-1);
     expect(readingDataIndex).toBeGreaterThan(-1);
