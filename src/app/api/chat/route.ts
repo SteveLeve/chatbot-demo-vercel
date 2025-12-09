@@ -1,4 +1,3 @@
-import { createOpenAI } from '@ai-sdk/openai';
 import { streamText, embed, convertToModelMessages, UIMessage } from 'ai';
 import { db } from '../../../db';
 import { documents } from '../../../db/schema';
@@ -6,12 +5,15 @@ import { cosineDistance, desc, gt, sql } from 'drizzle-orm';
 
 export const maxDuration = 30;
 
-const openai = createOpenAI({
-    apiKey: process.env.OPENAI_API_KEY || process.env.AI_GATEWAY_API_KEY,
-    baseURL: process.env.OPENAI_API_KEY ? undefined : (process.env.AI_GATEWAY_API_KEY ? 'https://gateway.ai.vercel.dev/v1' : undefined),
-});
-
 export async function POST(req: Request) {
+  // Validate AI_GATEWAY_API_KEY is present
+  if (!process.env.AI_GATEWAY_API_KEY) {
+    return new Response(
+      JSON.stringify({ error: 'Missing AI_GATEWAY_API_KEY environment variable' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
   const { messages }: { messages: UIMessage[] } = await req.json();
   const lastMessage = messages[messages.length - 1];
 
@@ -23,7 +25,7 @@ export async function POST(req: Request) {
 
   // 1. Generate embedding for the user's question
   const { embedding } = await embed({
-    model: openai.embedding('text-embedding-3-small'),
+    model: 'openai/text-embedding-3-small',
     value: lastMessageText,
   });
 
@@ -45,7 +47,7 @@ export async function POST(req: Request) {
 
   // 4. Stream response using AI SDK v5 pattern
   const result = streamText({
-    model: openai('gpt-4o'),
+    model: 'openai/gpt-4o',
     messages: convertToModelMessages(messages),
     system: `You are a helpful assistant. Use the following context to answer the user's question. If the answer is not in the context, say you don't know.\n\nContext:\n${context}`,
   });
