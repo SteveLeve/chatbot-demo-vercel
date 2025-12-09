@@ -18,12 +18,10 @@ export async function POST(req: Request) {
   const lastMessage = messages[messages.length - 1];
 
   // Extract text from the last message
-  const lastMessageText = typeof lastMessage.content === 'string' 
-    ? lastMessage.content 
-    : lastMessage.parts
-      ?.filter(part => part.type === 'text')
-      .map(part => part.text)
-      .join(' ') || '';
+  const lastMessageText = lastMessage.parts
+    ?.filter(part => part.type === 'text')
+    .map(part => (part as any).text)
+    .join(' ') || '';
 
   // 1. Generate embedding for the user's question
   const { embedding } = await embed({
@@ -52,7 +50,10 @@ export async function POST(req: Request) {
     model: 'openai/gpt-4o',
     messages: messages.map(msg => ({
       role: msg.role,
-      content: typeof msg.content === 'string' ? msg.content : msg.parts?.map(p => p.text).join(' ') || ''
+      content: msg.parts
+        ?.filter(part => part.type === 'text')
+        .map(part => (part as any).text)
+        .join(' ') || ''
     })),
     system: `You are a helpful assistant. Use the following context to answer the user's question. If the answer is not in the context, say you don't know.\n\nContext:\n${context}`,
   });
