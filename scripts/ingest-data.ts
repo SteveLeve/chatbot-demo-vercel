@@ -5,6 +5,7 @@ config({ path: '.env.local' });
 import fs from 'fs';
 import path from 'path';
 import { embedMany } from 'ai';
+import { sql } from 'drizzle-orm';
 import { db } from '../src/db';
 import { documents } from '../src/db/schema';
 
@@ -100,10 +101,77 @@ function chunkText(text: string, maxChunkSize = 1000, overlap = 200): string[] {
   return chunks;
 }
 
+const MAX_RETRIES = 5;
+const BASE_BACKOFF_MS = 1000;
+const MAX_BACKOFF_MS = 16000;
+
+function isRateLimitError(error: unknown): boolean {
+  const err = error as any;
+  const message = typeof err?.message === 'string' ? err.message : '';
+  const responseBody = typeof err?.responseBody === 'string' ? err.responseBody : '';
+  const type = err?.type ?? err?.param?.type;
+  const statusCode = err?.statusCode ?? err?.status ?? err?.response?.status;
+
+  return (
+    err?.isRetryable === true ||
+    statusCode === 429 ||
+    type === 'rate_limit_exceeded' ||
+    /rate.?limit/i.test(message) ||
+    /rate_limit_exceeded/i.test(responseBody)
+  );
+}
+
+async function embedWithBackoff(values: string[]) {
+  let attempt = 0;
+  let delay = BASE_BACKOFF_MS;
+
+  while (true) {
+    try {
+      return await embedMany({
+        model: 'openai/text-embedding-3-small',
+        values,
+      });
+    } catch (error) {
+      attempt += 1;
+
+      if (!isRateLimitError(error) || attempt >= MAX_RETRIES) {
+        throw error;
+      }
+
+      console.warn(
+        `Rate limit encountered (attempt ${attempt}/${MAX_RETRIES}). Retrying in ${delay}ms...`,
+      );
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay = Math.min(delay * 2, MAX_BACKOFF_MS);
+    }
+  }
+}
+
+async function clearDocumentsTable() {
+  console.log('Clearing documents table...');
+  await db.execute(sql`drop table if exists documents`);
+  await db.execute(sql`
+    create table documents (
+      id serial primary key,
+      content text not null,
+      metadata jsonb,
+      embedding vector(1536),
+      created_at timestamp default now()
+    )
+  `);
+  console.log('Documents table recreated.');
+}
+
 async function main() {
     if (!process.env.AI_GATEWAY_API_KEY || !process.env.DATABASE_URL) {
         console.error('Missing AI_GATEWAY_API_KEY or DATABASE_URL in .env.local');
     process.exit(1);
+  }
+
+  const shouldClear = process.argv.includes('--clear');
+
+  if (shouldClear) {
+    await clearDocumentsTable();
   }
 
   console.log('Reading articles from directory...');
@@ -137,10 +205,7 @@ async function main() {
     console.log(`Processing batch ${i / BATCH_SIZE + 1}/${Math.ceil(allChunks.length / BATCH_SIZE)}...`);
 
     try {
-      const { embeddings } = await embedMany({
-        model: 'openai/text-embedding-3-small',
-        values: batch.map(c => c.content),
-      });
+      const { embeddings } = await embedWithBackoff(batch.map(c => c.content));
 
       const values = batch.map((chunk, idx) => ({
         content: chunk.content,
