@@ -72,10 +72,10 @@ describe('Ingestion Script - Requirements 1.3, 4.2', () => {
     expect(scriptContent).toMatch(/import.*embedMany.*from ['"]ai['"]/);
     
     // Verify embedMany is called with the model parameter
-    expect(scriptContent).toMatch(/embedMany\s*\(\s*\{[^}]*model:/s);
+    expect(scriptContent).toMatch(/embedMany\s*\(\s*\{[\s\S]*?model:/);
     
     // Verify the model uses the AI Gateway format
-    const embedManyCallMatch = scriptContent.match(/embedMany\s*\(\s*\{([^}]*)\}/s);
+    const embedManyCallMatch = scriptContent.match(/embedMany\s*\(\s*\{([\s\S]*?)\}/);
     expect(embedManyCallMatch).toBeTruthy();
     expect(embedManyCallMatch?.[1]).toContain("'openai/text-embedding-3-small'");
   });

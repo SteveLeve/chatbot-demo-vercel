@@ -46,6 +46,7 @@ data/wikipedia-data.json
 
 # Python virtual environment
 .venv/
+__pycache__/
 
 #kiro
 #.kiro

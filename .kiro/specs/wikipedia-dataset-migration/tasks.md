@@ -60,10 +60,10 @@
   - Add troubleshooting section for common errors
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 6. Checkpoint - Ensure all tests pass
+- [x] 6. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 7. Test full pipeline
+- [x] 7. Test full pipeline
   - Run fetch-data with small dataset (--size-mb 1)
   - Verify JSON files are created in data/wikipedia
   - Verify _fetch_metadata.json is created
