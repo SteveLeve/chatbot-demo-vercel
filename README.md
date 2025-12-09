@@ -1,5 +1,26 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Setup
+
+### 1. Get your AI Gateway API key
+
+To use this application, you'll need a Vercel AI Gateway API key:
+
+1. Visit the [Vercel AI Gateway documentation](https://vercel.com/docs/ai-gateway)
+2. Create or use an existing Vercel team
+3. Navigate to your team settings and generate an AI Gateway API key
+
+### 2. Configure environment variables
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```env
+AI_GATEWAY_API_KEY=your_ai_gateway_key_here
+DATABASE_URL=your_postgres_url_here
+```
+
+Make sure your PostgreSQL database has the `pgvector` extension enabled.
+
 ## Getting Started
 
 First, run the development server:

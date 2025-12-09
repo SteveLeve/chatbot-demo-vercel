@@ -11,8 +11,8 @@ inclusion: always
 
 ## AI & ML
 - **Vercel AI SDK** (`ai`, `@ai-sdk/openai`, `@ai-sdk/react`) - AI integration and streaming
-- **OpenAI** - LLM (gpt-4o) and embeddings (text-embedding-3-small)
-- **AI Gateway** - Optional Vercel AI Gateway for API management
+- **Vercel AI Gateway** - Unified interface to OpenAI models with automatic authentication
+- **OpenAI Models** - gpt-4o (LLM) and text-embedding-3-small (embeddings) accessed via AI Gateway
 
 ## Database
 - **PostgreSQL** with **pgvector** extension - Vector storage and similarity search
@@ -52,4 +52,4 @@ npx tsx scripts/ingest-data.ts  # Ingest Wikipedia data into vector DB
 
 Required in `.env.local`:
 - `DATABASE_URL` - PostgreSQL connection string (must have pgvector extension)
-- `OPENAI_API_KEY` or `AI_GATEWAY_API_KEY` - OpenAI API access
+- `AI_GATEWAY_API_KEY` - Vercel AI Gateway API key for accessing OpenAI models

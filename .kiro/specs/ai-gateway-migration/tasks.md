@@ -58,24 +58,24 @@
   - Test error handling when `AI_GATEWAY_API_KEY` is missing
   - _Requirements: 1.3, 4.2_
 
-- [ ] 3. Update Documentation
-- [ ] 3.1 Update tech stack documentation
+- [x] 3. Update Documentation
+- [x] 3.1 Update tech stack documentation
   - Modify `.kiro/steering/tech.md` to describe AI Gateway as primary method
   - Update AI & ML section to mention AI Gateway
   - Update Environment Variables section to list only `AI_GATEWAY_API_KEY`
   - _Requirements: 3.1, 3.2_
 
-- [ ] 3.2 Update README with AI Gateway setup instructions
+- [x] 3.2 Update README with AI Gateway setup instructions
   - Add section explaining how to obtain AI Gateway API key
   - Update environment variable setup instructions
   - Remove any references to `OPENAI_API_KEY`
   - _Requirements: 3.3_
 
-- [ ]* 3.3 Write property test for error message clarity
+- [x] 3.3 Write property test for error message clarity
   - **Property 3: Error message clarity**
   - **Validates: Requirements 1.5, 4.1, 4.2, 4.3**
   - Verify error messages reference `AI_GATEWAY_API_KEY`
   - Verify no error messages reference `OPENAI_API_KEY`
 
-- [ ] 4. Checkpoint - Ensure all tests pass
+- [x] 4. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
