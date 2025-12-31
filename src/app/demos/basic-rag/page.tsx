@@ -4,6 +4,7 @@ import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { SourcesCard } from './components/SourcesCard';
 
 export default function BasicRagPage() {
   const { messages, sendMessage, status } = useChat({
@@ -58,6 +59,10 @@ export default function BasicRagPage() {
                   part.type === 'text' ? <span key={index}>{part.text}</span> : null
                 )}
               </div>
+
+              {message.role === 'assistant' && (message as any).data?.sources && (
+                <SourcesCard sources={(message as any).data.sources} />
+              )}
             </div>
           </div>
         ))}

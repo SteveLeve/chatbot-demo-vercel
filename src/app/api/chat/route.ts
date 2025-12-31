@@ -2,6 +2,7 @@ import { streamText, embed, convertToModelMessages, UIMessage } from 'ai';
 import { db } from '../../../db';
 import { documents } from '../../../db/schema';
 import { cosineDistance, desc, gt, sql } from 'drizzle-orm';
+import type { DocumentSource } from '../../../types/sources';
 
 export const maxDuration = 30;
 
@@ -36,6 +37,7 @@ export async function POST(req: Request) {
     .select({
       content: documents.content,
       similarity,
+      metadata: documents.metadata,
     })
     .from(documents)
     .where(gt(similarity, 0.5))
@@ -45,7 +47,14 @@ export async function POST(req: Request) {
   // 3. Construct context
   const context = similarDocs.map((doc) => doc.content).join('\n\n');
 
-  // 4. Stream response using AI SDK v5 pattern
+  // 4. Prepare sources for response
+  const sources: DocumentSource[] = similarDocs.map((doc) => ({
+    content: doc.content,
+    similarity: doc.similarity,
+    metadata: doc.metadata as { title?: string; [key: string]: any } || { title: 'Untitled' },
+  }));
+
+  // 5. Stream response using AI SDK v5 pattern
   const result = streamText({
     model: 'openai/gpt-4o',
     messages: messages.map(msg => ({
@@ -56,7 +65,21 @@ export async function POST(req: Request) {
         .join(' ') || ''
     })),
     system: `You are a helpful assistant. Use the following context to answer the user's question. If the answer is not in the context, say you don't know.\n\nContext:\n${context}`,
+    onFinish: async ({ text, usage }) => {
+      // Log completion for debugging
+      console.log('Stream finished:', { textLength: text.length, usage });
+    },
   });
 
-  return result.toUIMessageStreamResponse();
+  // Create response with sources metadata
+  const response = result.toUIMessageStreamResponse();
+
+  // Append sources as data annotation
+  // Note: This will need frontend adjustment to read sources from stream data
+  return new Response(response.body, {
+    headers: {
+      ...Object.fromEntries(response.headers),
+      'X-Sources': JSON.stringify(sources),
+    },
+  });
 }
