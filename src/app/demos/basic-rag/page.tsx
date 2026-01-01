@@ -5,9 +5,10 @@ import { DefaultChatTransport } from 'ai';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { SourcesCard } from './components/SourcesCard';
+import type { CustomUIMessage } from '@/types/ui-message';
 
 export default function BasicRagPage() {
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status } = useChat<CustomUIMessage>({
     transport: new DefaultChatTransport({
       api: '/api/chat',
     }),
@@ -42,30 +43,42 @@ export default function BasicRagPage() {
           </div>
         )}
 
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
+        {messages.map((message) => {
+          // Extract sources from message parts (AI SDK v5 RAG pattern with custom data)
+          const sourcesPart = message.parts.find(part => part.type === 'data-sources') as any;
+          const sources = sourcesPart?.data?.map((source: any) => ({
+            content: source.content,
+            similarity: source.similarity,
+            metadata: {
+              title: source.title,
+            },
+          })) || [];
+
+          return (
             <div
-              className={`max-w-[80%] rounded-lg p-4 ${
-                message.role === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white border border-gray-200 text-gray-800 shadow-sm'
-              }`}
+              key={message.id}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className="whitespace-pre-wrap">
-                {message.parts.map((part, index) =>
-                  part.type === 'text' ? <span key={index}>{part.text}</span> : null
+              <div
+                className={`max-w-[80%] rounded-lg p-4 ${
+                  message.role === 'user'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white border border-gray-200 text-gray-800 shadow-sm'
+                }`}
+              >
+                <div className="whitespace-pre-wrap">
+                  {message.parts.map((part, index) =>
+                    part.type === 'text' ? <span key={index}>{part.text}</span> : null
+                  )}
+                </div>
+
+                {message.role === 'assistant' && sources.length > 0 && (
+                  <SourcesCard sources={sources} />
                 )}
               </div>
-
-              {message.role === 'assistant' && (message as any).data?.sources && (
-                <SourcesCard sources={(message as any).data.sources} />
-              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
         {(status === 'submitted' || status === 'streaming') && (
           <div className="flex justify-start">
             <div className="bg-gray-100 rounded-lg p-4 text-gray-500 animate-pulse">
