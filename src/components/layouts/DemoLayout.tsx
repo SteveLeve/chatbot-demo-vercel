@@ -90,8 +90,8 @@ export function DemoLayout({
               <p>{section.content}</p>
               {section.links && section.links.length > 0 && (
                 <div className="mt-3 space-y-1">
-                  {section.links.map((link, idx) => (
-                    <div key={idx}>
+                  {section.links.map((link) => (
+                    <div key={link.href}>
                       <Link
                         href={link.href}
                         className="text-blue-600 dark:text-blue-400 hover:underline text-sm"

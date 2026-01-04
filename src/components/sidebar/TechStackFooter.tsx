@@ -11,9 +11,9 @@ export function TechStackFooter({ stack }: TechStackFooterProps) {
             {stack.title}
           </h4>
           <div className="flex flex-wrap gap-2">
-            {stack.technologies.map((tech, index) => (
+            {stack.technologies.map((tech) => (
               <span
-                key={index}
+                key={tech}
                 className="inline-block px-2 py-1 text-xs bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300"
               >
                 {tech}

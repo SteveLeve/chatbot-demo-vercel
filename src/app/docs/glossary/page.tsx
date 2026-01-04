@@ -41,8 +41,8 @@ function GlossaryTermCard({
             Learn More
           </h4>
           <ul className="space-y-1">
-            {learnMore.map((link, idx) => (
-              <li key={idx}>
+            {learnMore.map((link) => (
+              <li key={link.url}>
                 <a
                   href={link.url}
                   target="_blank"

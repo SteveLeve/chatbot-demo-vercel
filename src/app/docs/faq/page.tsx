@@ -50,17 +50,19 @@ function FaqQuestion({
             {answer.split('\n\n').map((paragraph, idx) => {
               // Check if paragraph starts with ** for bold headings
               if (paragraph.startsWith('**')) {
-                const [heading, ...rest] = paragraph.split('**');
-                const boldText = rest[0];
-                const remainingText = rest.slice(1).join('**');
-                return (
-                  <p key={idx} className="mb-3 text-gray-700 dark:text-gray-300">
-                    <strong className="font-semibold text-gray-900 dark:text-gray-100">
-                      {boldText}
-                    </strong>
-                    {remainingText}
-                  </p>
-                );
+                // Extract bold text between ** markers using regex
+                const match = paragraph.match(/^\*\*([^*]+)\*\*(.*)$/);
+                if (match) {
+                  const [, boldText, remainingText] = match;
+                  return (
+                    <p key={idx} className="mb-3 text-gray-700 dark:text-gray-300">
+                      <strong className="font-semibold text-gray-900 dark:text-gray-100">
+                        {boldText}
+                      </strong>
+                      {remainingText}
+                    </p>
+                  );
+                }
               }
               return (
                 <p key={idx} className="mb-3 text-gray-700 dark:text-gray-300">
@@ -76,8 +78,8 @@ function FaqQuestion({
                 Related Resources
               </h4>
               <ul className="space-y-1">
-                {relatedLinks.map((link, idx) => (
-                  <li key={idx}>
+                {relatedLinks.map((link) => (
+                  <li key={link.href}>
                     <Link
                       href={link.href}
                       className="text-sm text-blue-600 dark:text-blue-400 hover:underline"

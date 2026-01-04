@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { EducationalSidebarProps } from '@/types/sidebar';
 import { TechStackFooter } from './TechStackFooter';
 
@@ -15,9 +15,26 @@ export function EducationalSidebar({
   const sidebarRef = useRef<HTMLElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
 
-  // Lock body scroll when mobile drawer is open
+  // Mobile viewport detection for modal-only behavior
+  const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
-    if (isOpen) {
+    const mediaQuery = window.matchMedia('(max-width: 1023px)');
+
+    // Set initial value
+    setIsMobile(mediaQuery.matches);
+
+    // Listen for viewport changes
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mediaQuery.addEventListener('change', handler);
+
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+
+  // Lock body scroll when mobile drawer is open (mobile only)
+  useEffect(() => {
+    // Only lock scroll on mobile where sidebar is a modal overlay
+    if (isOpen && isMobile) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -26,11 +43,12 @@ export function EducationalSidebar({
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isOpen]);
+  }, [isOpen, isMobile]);
 
-  // Focus management: auto-focus and focus trap
+  // Focus management: auto-focus and return focus (mobile only)
   useEffect(() => {
-    if (isOpen && sidebarRef.current) {
+    // Only manage focus on mobile where sidebar is a modal dialog
+    if (isOpen && isMobile && sidebarRef.current) {
       // Store the currently focused element
       previousActiveElement.current = document.activeElement as HTMLElement;
 
@@ -46,11 +64,12 @@ export function EducationalSidebar({
       previousActiveElement.current.focus();
       previousActiveElement.current = null;
     }
-  }, [isOpen]);
+  }, [isOpen, isMobile]);
 
-  // Focus trap for mobile drawer
+  // Focus trap for mobile drawer (mobile only)
   useEffect(() => {
-    if (!isOpen || !sidebarRef.current) return;
+    // Only trap focus on mobile where sidebar is a modal dialog
+    if (!isOpen || !isMobile || !sidebarRef.current) return;
 
     const handleTabKey = (e: KeyboardEvent) => {
       if (e.key !== 'Tab' || !sidebarRef.current) return;
@@ -78,7 +97,7 @@ export function EducationalSidebar({
 
     window.addEventListener('keydown', handleTabKey);
     return () => window.removeEventListener('keydown', handleTabKey);
-  }, [isOpen]);
+  }, [isOpen, isMobile]);
 
   // Close on Escape key
   useEffect(() => {
@@ -100,7 +119,6 @@ export function EducationalSidebar({
           className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-40 lg:hidden"
           onClick={onClose}
           aria-hidden="true"
-          aria-label="Close sidebar"
         />
       )}
 
@@ -120,8 +138,8 @@ export function EducationalSidebar({
           ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
           shadow-2xl lg:shadow-none
         `}
-        role={isOpen ? 'dialog' : undefined}
-        aria-modal={isOpen ? 'true' : undefined}
+        role={isOpen && isMobile ? 'dialog' : undefined}
+        aria-modal={isOpen && isMobile ? 'true' : undefined}
         aria-labelledby="sidebar-title"
         aria-label="Educational sidebar"
       >
@@ -170,7 +188,7 @@ export function EducationalSidebar({
           </h2>
           <button
             onClick={onClose}
-            className="p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             aria-label="Close sidebar"
           >
             <svg
