@@ -57,5 +57,15 @@ Production RAG systems require rate limiting to prevent abuse, authentication to
       { text: 'Production best practices', href: '/docs/faq#production-practices' },
       { text: 'OWASP LLM Top 10', href: 'https://owasp.org/www-project-top-10-for-large-language-model-applications/', external: true }
     ]
+  },
+  {
+    id: 'learn-more',
+    title: 'Learn More',
+    content: `Explore our comprehensive documentation for deeper insights into RAG technology, implementation details, and best practices.`,
+    defaultOpen: false,
+    links: [
+      { text: '📖 Frequently Asked Questions', href: '/docs/faq' },
+      { text: '📚 Technical Glossary', href: '/docs/glossary' }
+    ]
   }
 ];

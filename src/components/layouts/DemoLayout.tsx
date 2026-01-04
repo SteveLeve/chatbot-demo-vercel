@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { EducationalSidebar } from '@/components/sidebar/EducationalSidebar';
@@ -25,6 +25,22 @@ export function DemoLayout({
   footer
 }: DemoLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Load collapsed state from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('sidebarCollapsed');
+    if (saved !== null) {
+      setIsSidebarCollapsed(saved === 'true');
+    }
+  }, []);
+
+  // Save collapsed state to localStorage
+  const handleToggleCollapse = () => {
+    const newState = !isSidebarCollapsed;
+    setIsSidebarCollapsed(newState);
+    localStorage.setItem('sidebarCollapsed', String(newState));
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
@@ -62,6 +78,8 @@ export function DemoLayout({
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           techStack={techStack}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={handleToggleCollapse}
         >
           {sidebarSections.map((section) => (
             <SidebarSection

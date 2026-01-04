@@ -23,6 +23,8 @@ export interface EducationalSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   techStack: TechStackInfo;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export interface SidebarSectionProps {
