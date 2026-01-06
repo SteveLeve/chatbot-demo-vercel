@@ -10,7 +10,8 @@
     "test": "vitest --run",
     "test:watch": "vitest",
     "fetch-data": "python3 scripts/fetch-wikipedia.py --size-mb 10",
-    "ingest-data": "tsx scripts/ingest-data.ts"
+    "ingest-data": "tsx scripts/ingest-data.ts",
+    "cleanup:sessions": "tsx scripts/cleanup-expired-sessions.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.77",
@@ -21,7 +22,8 @@
     "next": "^16.0.8",
     "pg": "^8.16.3",
     "react": "^19.2.1",
-    "react-dom": "^19.2.1"
+    "react-dom": "^19.2.1",
+    "ua-parser-js": "^2.0.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
