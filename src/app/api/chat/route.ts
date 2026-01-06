@@ -10,10 +10,16 @@ import { documents } from '../../../db/schema';
 import { cosineDistance, desc, gt, sql } from 'drizzle-orm';
 import type { DocumentSource } from '../../../types/sources';
 import type { CustomUIMessage } from '../../../types/ui-message';
+import { ChatLogger } from '../../../db/governance/logger';
 
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+  const startTime = Date.now();
+
+  // Initialize chat logger
+  const chatLogger = new ChatLogger();
+  await chatLogger.initializeSession(req);
   // Validate AI_GATEWAY_API_KEY is present
   if (!process.env.AI_GATEWAY_API_KEY) {
     return new Response(
@@ -42,6 +48,7 @@ export async function POST(req: Request) {
 
   const similarDocs = await db
     .select({
+      id: documents.id,
       content: documents.content,
       similarity,
       metadata: documents.metadata,
@@ -54,11 +61,22 @@ export async function POST(req: Request) {
   // 3. Construct context
   const context = similarDocs.map((doc) => doc.content).join('\n\n');
 
+  // Log user message
+  await chatLogger.logMessage({
+    request: req,
+    role: 'user',
+    content: lastMessageText,
+    messageIndex: messages.length - 1,
+  });
+
   // 4. Prepare sources for response
   const sources: DocumentSource[] = similarDocs.map((doc) => ({
     content: doc.content,
     similarity: doc.similarity,
-    metadata: doc.metadata as { title?: string; [key: string]: any } || { title: 'Untitled' },
+    metadata: {
+      ...(doc.metadata as { title?: string; [key: string]: any } || { title: 'Untitled' }),
+      documentId: doc.id,
+    },
   }));
 
   // 5. Stream response using AI SDK v5 RAG pattern with custom data parts
@@ -112,11 +130,30 @@ EXAMPLES:
 
 Remember: If you use ANY information not explicitly in the context, you have failed.`,
         onFinish: async ({ text, usage }) => {
+          const endTime = Date.now();
+          const latencyMs = endTime - startTime;
+
+          // Log assistant message
+          await chatLogger.logMessage({
+            request: req,
+            role: 'assistant',
+            content: text,
+            messageIndex: messages.length,
+            modelName: 'gpt-4o',
+            temperature: 0.0,
+            latencyMs,
+            tokenCount: usage?.totalTokens,
+            promptTokens: usage?.promptTokens,
+            completionTokens: usage?.completionTokens,
+            sources,
+          });
+
           // Log completion and sources for debugging
           console.log('Stream finished:', {
             textLength: text.length,
             usage,
             sourcesCount: sources.length,
+            sessionId: chatLogger.getSessionId(),
             sources: sources.map(s => ({ title: s.metadata?.title, similarity: s.similarity }))
           });
         },
