@@ -143,8 +143,8 @@ Remember: If you use ANY information not explicitly in the context, you have fai
             temperature: 0.0,
             latencyMs,
             tokenCount: usage?.totalTokens,
-            promptTokens: usage?.promptTokens,
-            completionTokens: usage?.completionTokens,
+            promptTokens: usage?.inputTokens,
+            completionTokens: usage?.outputTokens,
             sources,
           });
 
